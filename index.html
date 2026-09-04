@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHAH GADGETS — Tech That Moves You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+/* ============================================================
+   SHAH GADGETS — DESIGN TOKENS (edit these to re-skin the store)
+   ============================================================ */
+:root{
+  --bg-void:#07090a;
+  --bg-deep:#0d1210;
+  --bg-panel:#121815;
+  --bg-panel-2:#161d19;
+  --line:#223028;
+  --ink:#f3f2ea;
+  --ink-dim:#9aa39c;
+  --ink-faint:#5c655e;
+  --brand:#ff5a2a;        /* signal orange — CTAs, price, accents */
+  --brand-dim:#c94620;
+  --volt:#c8ff4d;         /* acid volt green — trust/success/motion accents */
+  --amber:#ffb238;
+  --radius:14px;
+  --radius-sm:8px;
+  --disp:'Anton', sans-serif;
+  --body:'Space Grotesk', sans-serif;
+  --mono:'JetBrains Mono', monospace;
+  --ease:cubic-bezier(.16,.84,.44,1);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg-void);
+  color:var(--ink);
+  font-family:var(--body);
+  overflow-x:hidden;
+  line-height:1.5;
+}
+img,svg{display:block; max-width:100%;}
+a{color:inherit; text-decoration:none;}
+button{font-family:inherit; cursor:pointer; border:none;}
+.container{max-width:1240px; margin:0 auto; padding:0 32px;}
+::selection{background:var(--brand); color:#0a0a0a;}
+
+/* subtle grain / scanline atmosphere over entire page */
+body::before{
+  content:'';
+  position:fixed; inset:0; z-index:9990; pointer-events:none;
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0px, rgba(255,255,255,.02) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode:overlay;
+  opacity:.35;
+}
+
+/* ============================= PRELOADER ============================= */
+#preloader{
+  position:fixed; inset:0; z-index:99999;
+  background:var(--bg-void);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+}
+#preloader .pl-mark{
+  font-family:var(--disp); font-size:clamp(32px,7vw,64px); letter-spacing:4px;
+  color:var(--ink); display:flex; overflow:hidden;
+}
+#preloader .pl-mark span{display:inline-block; transform:translateY(110%);}
+#preloader .pl-mark .accent{color:var(--brand);}
+#preloader .pl-bar{width:220px; height:2px; background:var(--line); position:relative; overflow:hidden;}
+#preloader .pl-bar i{position:absolute; inset:0; width:0%; background:var(--brand); box-shadow:0 0 12px var(--brand);}
+#preloader .pl-tag{font-family:var(--mono); font-size:11px; letter-spacing:3px; color:var(--ink-faint); text-transform:uppercase;}
+
+/* ============================= NAV ============================= */
+header{
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  padding:22px 0; transition:background .4s var(--ease), padding .4s var(--ease), border-color .4s var(--ease);
+  border-bottom:1px solid transparent;
+}
+header.scrolled{background:rgba(7,9,10,.85); backdrop-filter:blur(14px); padding:14px 0; border-color:var(--line);}
+.nav-row{display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{display:flex; align-items:center; gap:10px; font-family:var(--disp); font-size:20px; letter-spacing:1px;}
+.logo .bag{width:30px; height:30px; flex:none;}
+.logo .accent{color:var(--brand);}
+.nav-links{display:flex; gap:34px; font-size:14px; font-weight:500; letter-spacing:.3px;}
+.nav-links a{position:relative; color:var(--ink-dim); transition:color .25s;}
+.nav-links a:hover{color:var(--ink);}
+.nav-links a::after{content:''; position:absolute; left:0; bottom:-6px; width:0; height:1px; background:var(--brand); transition:width .3s var(--ease);}
+.nav-links a:hover::after{width:100%;}
+.nav-icons{display:flex; align-items:center; gap:20px;}
+.nav-icons button{background:none; color:var(--ink); display:flex; padding:4px;}
+.cart-wrap{position:relative;}
+.cart-badge{
+  position:absolute; top:-6px; right:-8px; background:var(--brand); color:#0a0a0a; font-family:var(--mono);
+  font-size:10px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.burger{display:none;}
+
+/* ============================= HERO ============================= */
+.hero{
+  position:relative; min-height:100vh; display:flex; align-items:center;
+  padding:140px 0 80px; overflow:hidden;
+  background:
+    radial-gradient(ellipse 60% 50% at 78% 30%, rgba(255,90,42,.16), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 15% 80%, rgba(200,255,77,.07), transparent 60%),
+    linear-gradient(180deg, var(--bg-void), var(--bg-deep));
+}
+.hero-grid{
+  position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 70% 70% at 60% 40%, black 20%, transparent 75%);
+}
+.ember{position:absolute; border-radius:50%; background:var(--brand); filter:blur(1px); opacity:.6; animation:float 9s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0) translateX(0);} 50%{transform:translateY(-40px) translateX(14px);}}
+.hero-inner{position:relative; z-index:2; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--volt); border:1px solid rgba(200,255,77,.3); padding:6px 14px; border-radius:99px; margin-bottom:24px;
+}
+.eyebrow i{width:6px; height:6px; border-radius:50%; background:var(--volt); box-shadow:0 0 8px var(--volt); animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.3;}}
+.hero h1{
+  font-family:var(--disp); font-size:clamp(46px,6.6vw,96px); line-height:.95; letter-spacing:.5px; text-transform:uppercase;
+}
+.hero h1 .line{display:block; overflow:hidden;}
+.hero h1 .line span{display:inline-block; transform:translateY(115%);}
+.hero h1 .brand-word{color:var(--brand); -webkit-text-stroke:0; }
+.hero p.lead{
+  margin-top:26px; max-width:460px; color:var(--ink-dim); font-size:16px; font-weight:400;
+}
+.hero-cta{display:flex; gap:16px; margin-top:38px; flex-wrap:wrap;}
+.btn{
+  display:inline-flex; align-items:center; gap:10px; padding:16px 30px; border-radius:99px; font-weight:600; font-size:14px;
+  letter-spacing:.3px; transition:transform .3s var(--ease), box-shadow .3s var(--ease), background .3s;
+}
+.btn-primary{background:var(--brand); color:#0a0a0a; box-shadow:0 8px 30px -8px rgba(255,90,42,.6);}
+.btn-primary:hover{transform:translateY(-3px); box-shadow:0 14px 34px -6px rgba(255,90,42,.75);}
+.btn-ghost{border:1px solid var(--line); color:var(--ink); background:transparent;}
+.btn-ghost:hover{border-color:var(--ink-dim); transform:translateY(-3px);}
+.hero-stats{display:flex; gap:36px; margin-top:56px; flex-wrap:wrap;}
+.stat b{font-family:var(--disp); font-size:32px; display:block; color:var(--ink);}
+.stat span{font-size:12px; color:var(--ink-faint); letter-spacing:.5px; text-transform:uppercase;}
+
+/* hero product stage */
+.stage{position:relative; display:flex; align-items:center; justify-content:center; height:460px; perspective:1200px;}
+.stage-ring{position:absolute; width:340px; height:340px; border-radius:50%; border:1px dashed rgba(255,255,255,.12); animation:spin 40s linear infinite;}
+.stage-ring.r2{width:420px; height:420px; border-color:rgba(255,90,42,.15); animation-duration:60s; animation-direction:reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.stage-glow{position:absolute; width:280px; height:280px; background:radial-gradient(circle, rgba(255,90,42,.35), transparent 70%); filter:blur(20px);}
+.stage-card{
+  position:relative; z-index:3; width:300px; padding:34px 26px; background:linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
+  border:1px solid var(--line); border-radius:20px; box-shadow:0 30px 60px -20px rgba(0,0,0,.7);
+  transform-style:preserve-3d; transition:transform .15s ease-out;
+}
+.stage-card .badge-off{position:absolute; top:16px; left:16px; background:var(--volt); color:#0a0a0a; font-family:var(--mono); font-size:11px; font-weight:700; padding:5px 10px; border-radius:6px;}
+.stage-icon{margin:20px auto 18px;}
+.stage-name{font-weight:600; text-align:center; font-size:15px;}
+.stage-price{text-align:center; margin-top:10px; font-family:var(--mono); font-size:20px; color:var(--brand); font-weight:700;}
+.stage-price s{color:var(--ink-faint); font-size:14px; margin-left:8px; font-weight:400;}
+.scan{position:absolute; left:6%; right:6%; height:2px; background:linear-gradient(90deg, transparent, var(--volt), transparent); top:0; animation:scan 3.2s linear infinite; opacity:.8;}
+@keyframes scan{0%{top:6%;} 100%{top:94%;}}
+
+/* ============================= TRUST BAR ============================= */
+.trust{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--bg-deep);}
+.trust-row{display:grid; grid-template-columns:repeat(4,1fr); padding:26px 0;}
+.trust-item{display:flex; align-items:center; gap:12px; padding:0 20px; border-right:1px solid var(--line);}
+.trust-item:last-child{border-right:none;}
+.trust-item svg{color:var(--volt); flex:none;}
+.trust-item b{display:block; font-size:13px; font-weight:600;}
+.trust-item span{font-size:11px; color:var(--ink-faint);}
+
+/* ============================= SECTION SHARED ============================= */
+section{padding:110px 0; position:relative;}
+.sec-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:52px; gap:20px; flex-wrap:wrap;}
+.sec-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--brand); margin-bottom:12px; display:block;}
+.sec-head h2{font-family:var(--disp); font-size:clamp(30px,4vw,48px); text-transform:uppercase; line-height:1;}
+.sec-link{font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; color:var(--ink-dim); border-bottom:1px solid var(--line); padding-bottom:2px;}
+.sec-link:hover{color:var(--brand); border-color:var(--brand);}
+.reveal{opacity:0; transform:translateY(40px);}
+
+/* ============================= CATEGORIES ============================= */
+.cat-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:18px;}
+.cat-card{
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:26px 14px; text-align:center;
+  transition:transform .35s var(--ease), border-color .35s;
+}
+.cat-card:hover{transform:translateY(-8px); border-color:var(--brand);}
+.cat-ic{
+  width:56px; height:56px; margin:0 auto 14px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(160deg, rgba(255,90,42,.18), rgba(255,90,42,.03)); color:var(--brand);
+}
+.cat-card span{font-size:13px; font-weight:600;}
+
+/* ============================= PRODUCT GRID ============================= */
+.prod-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:24px;}
+.prod-card{
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  transition:transform .4s var(--ease), border-color .4s;
+}
+.prod-card:hover{transform:translateY(-6px); border-color:rgba(255,90,42,.5);}
+.prod-media{position:relative; height:210px; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at 50% 30%, rgba(255,255,255,.05), transparent 70%); overflow:hidden;}
+.prod-media svg{width:96px; height:96px; color:var(--ink); transition:transform .5s var(--ease);}
+.prod-card:hover .prod-media svg{transform:scale(1.12) rotate(-4deg);}
+.prod-tag{position:absolute; top:12px; left:12px; background:var(--brand); color:#0a0a0a; font-family:var(--mono); font-size:10px; font-weight:700; padding:4px 8px; border-radius:5px;}
+.prod-wish{position:absolute; top:12px; right:12px; width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; color:var(--ink); backdrop-filter:blur(4px);}
+.prod-body{padding:18px 18px 22px;}
+.prod-stars{display:flex; align-items:center; gap:6px; margin-bottom:8px;}
+.prod-stars .stars{color:var(--amber); font-size:12px; letter-spacing:1px;}
+.prod-stars span{font-size:11px; color:var(--ink-faint);}
+.prod-name{font-weight:600; font-size:15px; margin-bottom:8px;}
+.prod-price{font-family:var(--mono); font-weight:700; color:var(--brand); font-size:16px;}
+.prod-price s{color:var(--ink-faint); font-weight:400; font-size:13px; margin-left:6px;}
+.prod-add{
+  margin-top:14px; width:100%; padding:11px; border-radius:99px; background:transparent; border:1px solid var(--line);
+  color:var(--ink); font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:background .3s, border-color .3s;
+}
+.prod-add:hover{background:var(--brand); border-color:var(--brand); color:#0a0a0a;}
+
+/* ============================= FEATURED PRODUCT DETAIL ============================= */
+.detail{background:var(--bg-deep); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+.detail-grid{display:grid; grid-template-columns:.85fr 1fr; gap:64px; align-items:flex-start;}
+.gallery{display:grid; grid-template-columns:76px 1fr; gap:16px;}
+.thumbs{display:flex; flex-direction:column; gap:12px;}
+.thumb{
+  width:76px; height:76px; border-radius:10px; background:var(--bg-panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-dim); transition:border-color .25s;
+}
+.thumb.active{border-color:var(--brand); color:var(--brand);}
+.main-shot{
+  position:relative; border-radius:18px; background:linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center; height:420px; overflow:hidden;
+}
+.main-shot svg{width:190px; height:190px; color:var(--ink);}
+.main-shot .badge-off{position:absolute; top:18px; left:18px; background:var(--volt); color:#0a0a0a; font-family:var(--mono); font-weight:700; font-size:12px; padding:6px 12px; border-radius:8px;}
+.detail-info .rating{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.detail-info .rating .stars{color:var(--amber); font-size:14px;}
+.detail-info .rating span{font-size:12px; color:var(--ink-faint);}
+.detail-info h3{font-family:var(--disp); font-size:clamp(30px,3.4vw,42px); text-transform:uppercase; line-height:1.05; margin-bottom:14px;}
+.detail-info .desc{color:var(--ink-dim); font-size:15px; max-width:420px; margin-bottom:22px;}
+.price-row{display:flex; align-items:baseline; gap:14px; margin-bottom:22px;}
+.price-row .now{font-family:var(--mono); font-size:34px; font-weight:700; color:var(--brand);}
+.price-row .was{font-family:var(--mono); font-size:18px; color:var(--ink-faint); text-decoration:line-through;}
+.price-row .off{background:rgba(200,255,77,.12); color:var(--volt); font-family:var(--mono); font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px;}
+.mini-trust{display:flex; gap:22px; margin-bottom:26px; flex-wrap:wrap;}
+.mini-trust div{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-dim);}
+.mini-trust svg{color:var(--volt);}
+.opt-label{font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:10px; font-weight:600;}
+.swatches{display:flex; gap:10px; margin-bottom:26px;}
+.swatch{width:32px; height:32px; border-radius:50%; border:2px solid transparent; cursor:pointer; position:relative;}
+.swatch.active{border-color:var(--brand);}
+.qty-cta{display:flex; gap:16px; align-items:center; margin-bottom:18px; flex-wrap:wrap;}
+.qty-box{display:flex; align-items:center; border:1px solid var(--line); border-radius:99px; overflow:hidden;}
+.qty-box button{background:transparent; color:var(--ink); width:38px; height:44px; font-size:16px;}
+.qty-box span{width:36px; text-align:center; font-family:var(--mono);}
+.viewers{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-faint); font-family:var(--mono);}
+.viewers i{width:8px; height:8px; border-radius:50%; background:var(--brand); box-shadow:0 0 8px var(--brand); animation:pulse 1.4s infinite;}
+
+/* ============================= WHY / FEATURES ============================= */
+.feat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:24px;}
+.feat-card{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:30px 24px;}
+.feat-card .num{font-family:var(--mono); color:var(--brand); font-size:12px; margin-bottom:18px; display:block;}
+.feat-card h4{font-size:17px; margin-bottom:10px; font-weight:700;}
+.feat-card p{font-size:13px; color:var(--ink-dim); line-height:1.6;}
+
+/* ============================= DEAL COUNTDOWN ============================= */
+.deal{
+  position:relative; border-radius:24px; overflow:hidden; padding:60px; text-align:center;
+  background:linear-gradient(135deg, rgba(255,90,42,.16), rgba(200,255,77,.05)), var(--bg-panel);
+  border:1px solid var(--line);
+}
+.deal span.tag{font-family:var(--mono); color:var(--volt); letter-spacing:3px; font-size:12px;}
+.deal h2{font-family:var(--disp); font-size:clamp(32px,5vw,58px); text-transform:uppercase; margin:14px 0 30px;}
+.countdown{display:flex; justify-content:center; gap:18px; margin-bottom:34px; flex-wrap:wrap;}
+.count-box{background:var(--bg-void); border:1px solid var(--line); border-radius:14px; width:88px; padding:16px 0;}
+.count-box b{font-family:var(--disp); font-size:32px; display:block;}
+.count-box span{font-size:10px; letter-spacing:2px; color:var(--ink-faint); text-transform:uppercase;}
+
+/* ============================= TESTIMONIALS ============================= */
+.test-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+.test-card{background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius); padding:28px;}
+.test-card .stars{color:var(--amber); font-size:13px; margin-bottom:14px; display:block;}
+.test-card p{font-size:14px; color:var(--ink-dim); margin-bottom:20px; line-height:1.7;}
+.test-who{display:flex; align-items:center; gap:12px;}
+.test-avatar{width:38px; height:38px; border-radius:50%; background:linear-gradient(160deg, var(--brand), var(--brand-dim)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;}
+.test-who b{font-size:13px; display:block;}
+.test-who span{font-size:11px; color:var(--ink-faint);}
+
+/* ============================= NEWSLETTER ============================= */
+.news{
+  border-radius:24px; padding:60px; text-align:center; background:var(--bg-panel); border:1px solid var(--line);
+}
+.news h2{font-family:var(--disp); font-size:clamp(28px,4.4vw,48px); text-transform:uppercase; margin-bottom:14px;}
+.news p{color:var(--ink-dim); margin-bottom:28px;}
+.news-form{display:flex; justify-content:center; gap:12px; max-width:440px; margin:0 auto; flex-wrap:wrap;}
+.news-form input{flex:1; min-width:220px; padding:15px 20px; border-radius:99px; border:1px solid var(--line); background:var(--bg-void); color:var(--ink); font-family:inherit;}
+.news-form input:focus{outline:none; border-color:var(--brand);}
+
+/* ============================= FOOTER ============================= */
+footer{border-top:1px solid var(--line); background:var(--bg-void); padding:70px 0 30px;}
+.foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:40px; margin-bottom:50px;}
+.foot-brand p{color:var(--ink-faint); font-size:13px; margin-top:14px; max-width:280px; line-height:1.7;}
+.foot-col h5{font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:18px;}
+.foot-col a{display:block; font-size:13px; color:var(--ink-dim); margin-bottom:12px; transition:color .2s;}
+.foot-col a:hover{color:var(--brand);}
+.foot-bottom{display:flex; justify-content:space-between; align-items:center; padding-top:28px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-faint); flex-wrap:wrap; gap:14px;}
+.socials{display:flex; gap:14px;}
+.socials a{width:34px; height:34px; border:1px solid var(--line); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--ink-dim);}
+.socials a:hover{border-color:var(--brand); color:var(--brand);}
+
+/* ============================= RESPONSIVE ============================= */
+@media (max-width:1024px){
+  .cat-grid{grid-template-columns:repeat(3,1fr);}
+  .prod-grid{grid-template-columns:repeat(2,1fr);}
+  .feat-grid{grid-template-columns:repeat(2,1fr);}
+  .detail-grid{grid-template-columns:1fr; gap:40px;}
+  .foot-grid{grid-template-columns:1fr 1fr;}
+  .hero-inner{grid-template-columns:1fr;}
+  .stage{margin-top:40px;}
+}
+@media (max-width:720px){
+  .nav-links{display:none;}
+  .burger{display:flex; background:none; color:var(--ink);}
+  .trust-row{grid-template-columns:repeat(2,1fr); gap:16px;}
+  .trust-item{border-right:none; border-bottom:1px solid var(--line); padding-bottom:16px;}
+  .cat-grid{grid-template-columns:repeat(2,1fr);}
+  .prod-grid{grid-template-columns:1fr 1fr;}
+  .feat-grid{grid-template-columns:1fr;}
+  .foot-grid{grid-template-columns:1fr;}
+  section{padding:70px 0;}
+  .deal,.news{padding:40px 22px;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="preloader">
+  <div class="pl-mark"><span>S</span><span>H</span><span>A</span><span>H</span>&nbsp;<span class="accent">G</span><span class="accent">A</span><span class="accent">D</span><span class="accent">G</span><span class="accent">E</span><span class="accent">T</span><span class="accent">S</span></div>
+  <div class="pl-bar"><i id="plFill"></i></div>
+  <div class="pl-tag">Powering up the store…</div>
+</div>
+
+<header id="siteHeader">
+  <div class="container nav-row">
+    <div class="logo">
+      <svg class="bag" viewBox="0 0 24 24" fill="none"><path d="M6 8h12l-1 12H7L6 8Z" stroke="#ff5a2a" stroke-width="1.6"/><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="#f3f2ea" stroke-width="1.6"/></svg>
+      SHAH<span class="accent">GADGETS</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#shop">Shop</a>
+      <a href="#collections">Collections</a>
+      <a href="#featured">Best Seller</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-icons">
+      <button aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button aria-label="Account"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6"/></svg></button>
+      <div class="cart-wrap">
+        <button id="cartBtn" aria-label="Cart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></button>
+        <span class="cart-badge" id="cartCount">0</span>
+      </div>
+      <button class="burger" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================= HERO ============================= -->
+<section class="hero" id="home" style="padding-top:140px;">
+  <div class="hero-grid"></div>
+  <div class="container hero-inner">
+    <div>
+      <div class="eyebrow"><i></i> NEW DROPS WEEKLY · PAKISTAN-WIDE DELIVERY</div>
+      <h1>
+        <span class="line"><span>TECH THAT</span></span>
+        <span class="line"><span class="brand-word">MOVES</span></span>
+        <span class="line"><span>YOU.</span></span>
+      </h1>
+      <p class="lead">Shah Gadgets curates the sharpest audio, wearables and everyday-carry tech — tested for quality, priced for real people, shipped fast across Pakistan.</p>
+      <div class="hero-cta">
+        <a href="#shop" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"/></svg>
+          Shop Now
+        </a>
+        <a href="#collections" class="btn btn-ghost">Explore Collections</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><b class="count" data-to="12000">0</b><span>Happy Customers</span></div>
+        <div class="stat"><b class="count" data-to="49" data-suffix="/10">0</b><span>Avg. Rating</span></div>
+        <div class="stat"><b class="count" data-to="24">0</b><span>Hr Support</span></div>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="stage-ring"></div>
+      <div class="stage-ring r2"></div>
+      <div class="stage-glow"></div>
+      <div class="stage-card" id="tiltCard">
+        <div class="scan"></div>
+        <span class="badge-off">-25%</span>
+        <svg class="stage-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#f3f2ea" stroke-width="1.3" style="margin-left:auto;margin-right:auto;display:block;">
+          <path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/>
+        </svg>
+        <div class="stage-name">Aura Noise-Cancelling Headphones</div>
+        <div class="stage-price">Rs 8,999 <s>Rs 11,999</s></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= TRUST BAR ============================= -->
+<div class="trust">
+  <div class="container trust-row">
+    <div class="trust-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg><div><b>Free Shipping</b><span>On orders over Rs 4,000</span></div></div>
+    <div class="trust-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><div><b>Secure Payment</b><span>Cards &amp; Cash on Delivery</span></div></div>
+    <div class="trust-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg><div><b>Easy Returns</b><span>7-day return policy</span></div></div>
+    <div class="trust-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><b>24/7 Support</b><span>Real humans, always on</span></div></div>
+  </div>
+</div>
+
+<!-- ============================= CATEGORIES ============================= -->
+<section id="collections">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div><span class="sec-eyebrow">Shop by Category</span><h2>Find Your Gadget</h2></div>
+      <a href="#shop" class="sec-link">View all categories →</a>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg></div><span>Audio</span></div>
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg></div><span>Mobiles</span></div>
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="4" width="12" height="16" rx="4"/><path d="M9 8h6M9 12h6"/></svg></div><span>Wearables</span></div>
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><path d="M14 10h4M14 14h2"/></svg></div><span>Smart Home</span></div>
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="7" width="20" height="11" rx="2"/><circle cx="7.5" cy="12.5" r="1.6"/><circle cx="16.5" cy="12.5" r="1.6"/></svg></div><span>Gaming</span></div>
+      <div class="cat-card reveal"><div class="cat-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16v11H4zM8 8V6a4 4 0 0 1 8 0v2"/></svg></div><span>Accessories</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= BEST SELLERS ============================= -->
+<section id="shop">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div><span class="sec-eyebrow">Best Sellers</span><h2>Most Wanted Right Now</h2></div>
+      <a href="#" class="sec-link">View all products →</a>
+    </div>
+    <div class="prod-grid">
+
+      <div class="prod-card reveal">
+        <div class="prod-media"><span class="prod-tag">-25%</span><span class="prod-wish">♡</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-stars"><span class="stars">★★★★★</span><span>(128)</span></div>
+          <div class="prod-name">Aura ANC Headphones</div>
+          <div class="prod-price">Rs 8,999 <s>Rs 11,999</s></div>
+          <button class="prod-add">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="prod-card reveal">
+        <div class="prod-media"><span class="prod-tag">-18%</span><span class="prod-wish">♡</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="6" y="4" width="12" height="16" rx="4"/><path d="M9 8h6M9 12h6"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-stars"><span class="stars">★★★★★</span><span>(96)</span></div>
+          <div class="prod-name">Pulse Smart Watch</div>
+          <div class="prod-price">Rs 6,499 <s>Rs 7,899</s></div>
+          <button class="prod-add">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="prod-card reveal">
+        <div class="prod-media"><span class="prod-tag">NEW</span><span class="prod-wish">♡</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-stars"><span class="stars">★★★★☆</span><span>(64)</span></div>
+          <div class="prod-name">Fenix Power Bank 20K</div>
+          <div class="prod-price">Rs 3,299</div>
+          <button class="prod-add">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="prod-card reveal">
+        <div class="prod-media"><span class="prod-tag">-30%</span><span class="prod-wish">♡</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-4h6v4"/></svg>
+        </div>
+        <div class="prod-body">
+          <div class="prod-stars"><span class="stars">★★★★★</span><span>(154)</span></div>
+          <div class="prod-name">Orbit Bluetooth Speaker</div>
+          <div class="prod-price">Rs 4,199 <s>Rs 5,999</s></div>
+          <button class="prod-add">Add to Cart</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================= FEATURED PRODUCT DETAIL ============================= -->
+<div class="detail" id="featured">
+  <section>
+    <div class="container">
+      <div class="sec-eyebrow reveal" style="text-align:left;">Featured Product</div>
+      <div class="detail-grid" style="margin-top:24px;">
+        <div class="gallery reveal">
+          <div class="thumbs">
+            <div class="thumb active"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg></div>
+            <div class="thumb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/></svg></div>
+            <div class="thumb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="4" y="4" width="16" height="16" rx="3"/></svg></div>
+            <div class="thumb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 20V10l8-6 8 6v10z"/></svg></div>
+          </div>
+          <div class="main-shot">
+            <span class="badge-off">-25% OFF</span>
+            <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="#f3f2ea" stroke-width="1.1"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg>
+          </div>
+        </div>
+        <div class="detail-info reveal">
+          <div class="rating"><span class="stars">★★★★★</span><span>(128 Reviews)</span></div>
+          <h3>Aura Noise-Cancelling Wireless Headphones</h3>
+          <p class="desc">Immersive 40-hour battery life, adaptive noise cancelling and studio-tuned sound — built for daily commutes and long calls alike.</p>
+          <div class="price-row">
+            <span class="now">Rs 8,999</span>
+            <span class="was">Rs 11,999</span>
+            <span class="off">SAVE 25%</span>
+          </div>
+          <div class="mini-trust">
+            <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/></svg>Free Shipping</div>
+            <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12a9 9 0 1 1-3-6.7"/></svg>7-Day Returns</div>
+            <div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m5 13 4 4L19 7"/></svg>1-Year Warranty</div>
+          </div>
+          <div class="opt-label">Color: <span id="colorName" style="color:var(--ink); font-weight:400;">Midnight Black</span></div>
+          <div class="swatches">
+            <div class="swatch active" data-name="Midnight Black" style="background:#181818;" onclick="pickColor(this)"></div>
+            <div class="swatch" data-name="Desert Sand" style="background:#c9b79c;" onclick="pickColor(this)"></div>
+            <div class="swatch" data-name="Ocean Blue" style="background:#2c4a6e;" onclick="pickColor(this)"></div>
+          </div>
+          <div class="qty-cta">
+            <div class="qty-box">
+              <button onclick="changeQty(-1)">−</button><span id="qtyVal">1</span><button onclick="changeQty(1)">+</button>
+            </div>
+            <button class="btn btn-primary" onclick="addToCart()">Add to Cart</button>
+            <button class="btn btn-ghost">Buy It Now</button>
+          </div>
+          <div class="viewers"><i></i> <span id="viewerCount">22</span> people are viewing this right now</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================= WHY CHOOSE US ============================= -->
+<section>
+  <div class="container">
+    <div class="sec-head reveal">
+      <div><span class="sec-eyebrow">Why Shah Gadgets</span><h2>Built to Convert Browsers Into Buyers</h2></div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card reveal"><span class="num">01</span><h4>Clean &amp; Focused</h4><p>No clutter, no distractions — every page is built around one product, one decision.</p></div>
+      <div class="feat-card reveal"><span class="num">02</span><h4>Built for Trust</h4><p>Reviews, badges and clear policies that give first-time buyers instant confidence.</p></div>
+      <div class="feat-card reveal"><span class="num">03</span><h4>Mobile-First</h4><p>Most of Pakistan shops on mobile — so every layout is designed there first.</p></div>
+      <div class="feat-card reveal"><span class="num">04</span><h4>Strategic CTAs</h4><p>Smart placement of Add to Cart and Buy Now, right when the decision is easiest.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= DEAL OF THE DAY ============================= -->
+<section>
+  <div class="container">
+    <div class="deal reveal">
+      <span class="tag">DEAL OF THE DAY</span>
+      <h2>Up To 50% Off Selected Gadgets</h2>
+      <div class="countdown">
+        <div class="count-box"><b id="cH">08</b><span>Hours</span></div>
+        <div class="count-box"><b id="cM">24</b><span>Mins</span></div>
+        <div class="count-box"><b id="cS">36</b><span>Secs</span></div>
+      </div>
+      <a href="#shop" class="btn btn-primary">Shop the Sale</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= TESTIMONIALS ============================= -->
+<section>
+  <div class="container">
+    <div class="sec-head reveal">
+      <div><span class="sec-eyebrow">Customers</span><h2>What Buyers Are Saying</h2></div>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal">
+        <span class="stars">★★★★★</span>
+        <p>"Order aik din pehlay araha reach ho gaya, packaging bilkul solid thi. Headphones quality expectations say ziyada achi hai."</p>
+        <div class="test-who"><div class="test-avatar">A</div><div><b>Ahmed R.</b><span>Lahore</span></div></div>
+      </div>
+      <div class="test-card reveal">
+        <span class="stars">★★★★★</span>
+        <p>"Customer support ne exchange bhi asani say kar diya jab size issue hua. Highly recommend Shah Gadgets."</p>
+        <div class="test-who"><div class="test-avatar">S</div><div><b>Sara M.</b><span>Karachi</span></div></div>
+      </div>
+      <div class="test-card reveal">
+        <span class="stars">★★★★☆</span>
+        <p>"Prices genuinely competitive hain aur checkout process bohat smooth tha, cash on delivery bhi available."</p>
+        <div class="test-who"><div class="test-avatar">B</div><div><b>Bilal K.</b><span>Islamabad</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= NEWSLETTER ============================= -->
+<section>
+  <div class="container">
+    <div class="news reveal">
+      <h2>Get Early Access To New Drops</h2>
+      <p>Join the Shah Gadgets list for restock alerts, exclusive discounts and first look at new arrivals.</p>
+      <form class="news-form" onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('button').textContent='Subscribed ✓';">
+        <input type="email" placeholder="you@email.com" required>
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= FOOTER ============================= -->
+<footer id="contact">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="logo"><svg class="bag" viewBox="0 0 24 24" fill="none"><path d="M6 8h12l-1 12H7L6 8Z" stroke="#ff5a2a" stroke-width="1.6"/><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="#f3f2ea" stroke-width="1.6"/></svg>SHAH<span class="accent">GADGETS</span></div>
+        <p>Kohat-based, Pakistan-wide. Curated tech and everyday gadgets, shipped with care and backed by real support.</p>
+      </div>
+      <div class="foot-col"><h5>Quick Links</h5><a href="#home">Home</a><a href="#shop">Shop</a><a href="#collections">Categories</a><a href="#featured">Best Seller</a></div>
+      <div class="foot-col"><h5>Customer Service</h5><a href="#">Track Order</a><a href="#">Returns &amp; Refunds</a><a href="#">Shipping Policy</a><a href="#">FAQs</a></div>
+      <div class="foot-col">
+        <h5>Newsletter</h5>
+        <p style="font-size:13px; color:var(--ink-dim); margin-bottom:16px;">Deals and drops, straight to your inbox.</p>
+        <form class="news-form" style="justify-content:flex-start;" onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('button').textContent='✓';">
+          <input type="email" placeholder="Email" required style="border-radius:10px; padding:10px 14px;">
+          <button type="submit" class="btn btn-primary" style="padding:10px 18px; border-radius:10px;">Go</button>
+        </form>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Shah Gadgets. All rights reserved.</span>
+      <div class="socials">
+        <a href="#" aria-label="Instagram"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 9h3V6h-3a3 3 0 0 0-3 3v2H8v3h3v6h3v-6h3l1-3h-4v-2c0-.6.4-1 1-1Z"/></svg></a>
+        <a href="#" aria-label="TikTok"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3a5 5 0 0 0 5 5"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* Preloader */
+window.addEventListener('load', () => {
+  const tl = gsap.timeline({
+    onComplete: () => document.getElementById('preloader').style.display = 'none'
+  });
+  tl.to('#plFill', {width:'100%', duration:1.1, ease:'power2.out'})
+    .to('.pl-mark span', {y:'0%', duration:.6, stagger:.02, ease:'power3.out'}, '-=.9')
+    .to('#preloader', {yPercent:-100, duration:.7, ease:'power3.inOut', delay:.25})
+    .fromTo('.hero h1 .line span', {y:'115%'}, {y:'0%', duration:.9, stagger:.12, ease:'power4.out'}, '-=.4');
+});
+
+/* Header scroll state */
+window.addEventListener('scroll', () => {
+  document.getElementById('siteHeader').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+/* Scroll reveals */
+gsap.utils.toArray('.reveal').forEach((el, i) => {
+  gsap.to(el, {
+    opacity:1, y:0, duration:.9, ease:'power3.out',
+    scrollTrigger:{ trigger:el, start:'top 88%' }
+  });
+});
+
+/* Count-up stats */
+document.querySelectorAll('.count').forEach(el => {
+  const to = +el.dataset.to;
+  const suffix = el.dataset.suffix || '';
+  ScrollTrigger.create({
+    trigger: el, start:'top 90%', once:true,
+    onEnter: () => {
+      let obj = {v:0};
+      gsap.to(obj, {
+        v:to, duration:1.8, ease:'power2.out',
+        onUpdate: () => {
+          if(suffix==='/10'){ el.textContent = (obj.v/10).toFixed(1); }
+          else { el.textContent = Math.round(obj.v).toLocaleString(); }
+        }
+      });
+    }
+  });
+});
+
+/* Ember particles in hero */
+const hero = document.querySelector('.hero');
+for(let i=0;i<14;i++){
+  const e = document.createElement('div');
+  e.className='ember';
+  const s = 2+Math.random()*4;
+  e.style.width=s+'px'; e.style.height=s+'px';
+  e.style.left=Math.random()*100+'%';
+  e.style.top=Math.random()*100+'%';
+  e.style.animationDelay=(Math.random()*6)+'s';
+  e.style.animationDuration=(6+Math.random()*6)+'s';
+  hero.appendChild(e);
+}
+
+/* 3D tilt on hero product card */
+const tiltCard = document.getElementById('tiltCard');
+document.querySelector('.stage').addEventListener('mousemove', (e) => {
+  const r = tiltCard.getBoundingClientRect();
+  const x = (e.clientX - r.left)/r.width - .5;
+  const y = (e.clientY - r.top)/r.height - .5;
+  tiltCard.style.transform = `rotateY(${x*16}deg) rotateX(${-y*16}deg)`;
+});
+document.querySelector('.stage').addEventListener('mouseleave', () => {
+  tiltCard.style.transform = 'rotateY(0) rotateX(0)';
+});
+
+/* Cart / qty / color / countdown / viewer count (demo interactivity) */
+let cartCount = 0, qty = 1;
+function addToCart(){
+  cartCount += qty;
+  document.getElementById('cartCount').textContent = cartCount;
+  gsap.fromTo('#cartCount', {scale:1.6}, {scale:1, duration:.4, ease:'back.out(3)'});
+}
+document.querySelectorAll('.prod-add').forEach(btn => btn.addEventListener('click', () => { cartCount += 1; document.getElementById('cartCount').textContent = cartCount; }));
+function changeQty(d){ qty = Math.max(1, qty+d); document.getElementById('qtyVal').textContent = qty; }
+function pickColor(el){
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('colorName').textContent = el.dataset.name;
+}
+document.querySelectorAll('.thumb').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.thumb').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+}));
+
+/* Countdown timer */
+let total = 8*3600 + 24*60 + 36;
+setInterval(() => {
+  if(total <= 0) return;
+  total--;
+  const h = String(Math.floor(total/3600)).padStart(2,'0');
+  const m = String(Math.floor((total%3600)/60)).padStart(2,'0');
+  const s = String(total%60).padStart(2,'0');
+  document.getElementById('cH').textContent = h;
+  document.getElementById('cM').textContent = m;
+  document.getElementById('cS').textContent = s;
+}, 1000);
+
+/* Fake live viewer count */
+setInterval(() => {
+  const el = document.getElementById('viewerCount');
+  let v = +el.textContent + (Math.random() > .5 ? 1 : -1);
+  v = Math.max(9, Math.min(38, v));
+  el.textContent = v;
+}, 3500);
+</script>
+</body>
+</html>
+
+# Shah Gadgets — Store Website
+
+Cinematic, dark-themed front-end for the Shah Gadgets brand (homepage + featured product page), built with plain HTML/CSS/JS and GSAP for scroll animations.
+
+## Run locally
+Just open `index.html` in any browser — no build step, no dependencies to install.
+
+## Deploy free with GitHub Pages
+1. Create a new repo on GitHub (e.g. `shah-gadgets`).
+2. Upload `index.html` (and this `README.md`) to the repo — either drag-and-drop on the GitHub website, or:
+   ```
+   git init
+   git add .
+   git commit -m "Shah Gadgets store site"
+   git branch -M main
+   git remote add origin https://github.com/<your-username>/shah-gadgets.git
+   git push -u origin main
+   ```
+3. In the repo: **Settings → Pages → Branch: main → / (root) → Save**.
+4. After a minute, your site is live at:
+   `https://<your-username>.github.io/shah-gadgets/`
+
+## Customize
+All colors, fonts, and spacing are defined once at the top of the `<style>` block inside `index.html`, under `:root { ... }` — change a value there and it updates everywhere on the site.
+
+## Note
+This is a static front-end mockup, not a connected Shopify store — it has no real backend, payments, or inventory. To sell for real, either wire this design into a Shopify theme (Liquid) or add a checkout provider on top of it.
+
