@@ -65,7 +65,7 @@ body::before{
 #preloader .pl-mark{
   font-family:var(--disp); font-size:clamp(32px,7vw,64px); letter-spacing:4px;
   color:var(--ink); display:flex; overflow:hidden;
-}
+
 #preloader .pl-mark span{display:inline-block; transform:translateY(110%);}
 #preloader .pl-mark .accent{color:var(--brand);}
 #preloader .pl-bar{width:220px; height:2px; background:var(--line); position:relative; overflow:hidden;}
@@ -769,9 +769,5 @@ setInterval(() => {
 </body>
 </html>
 
-## Customize
-All colors, fonts, and spacing are defined once at the top of the `<style>` block inside `index.html`, under `:root { ... }` — change a value there and it updates everywhere on the site.
 
-## Note
-This is a static front-end mockup, not a connected Shopify store — it has no real backend, payments, or inventory. To sell for real, either wire this design into a Shopify theme (Liquid) or add a checkout provider on top of it.
 
